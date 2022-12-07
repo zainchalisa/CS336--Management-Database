@@ -1,0 +1,40 @@
+Zain Chalisa
+CS336
+MongoDB Assignment
+
+1. local.Bars.find({$or: [{phone: ""}, {addr: ""}]})
+2. local.Bars.aggregate([{“$group”: {"_id": "$city","numOfCity": {"$sum": 1}}}, {“$match”:{"numOfCity": {"$gt": 4}}}
+3. local.Bars.find({"beers.5": {"$exists": true}}) 
+4. local.Drinkers.find({$or: [{"history.day": "Sunday"}, {"history.day": "Saturday"}]}, {"history.day": 1, name: 1})
+5. db.Drinkers.aggregate([“$unwind”: {path: "$history", preserveNullAndEmptyArrays: true}, “$unwind”: {path:"$set_of_beers", preserveNullAndEmptyArrays: true}, “$match”: {"history.set_of_beers": "Blue Tattoo"}, “$group”: {_id: "$name", blueTatTotal: {$sum: 1}}, ”$match”: {"blueTatTotal": {"$gt": 1}}])
+6. local.Drinkers.insert_one({"name": "Lucy", "city": "Edison", "phone": "732-571-9871", "addr": "433 river rd", “age”: 23, "favoriteBarFood": ["French Fries", "Onion Rings", "Nachos", "Wings"]}) 
+7. J = [{ “BD”: 10, “AC”: [10, 11, 01, 00] }, { “BD”: 11, “AC”: [01]}]
+8. PyMongo Implementation
+
+import operator
+from pymongo import MongoClient
+ 
+client = MongoClient('localhost', 27017)
+db = client['local']
+collection = db['Penna']
+TotIncrement = {}
+ # found the total votes for each individual timestamp
+for key in collection.find({}, {"_id":0, "Timestamp": 1, "totalvotes": 1 }):
+   if key['Timestamp'] not in TotIncrement.keys():
+       TotIncrement[key['Timestamp']] = 0
+       TotIncrement[key['Timestamp']] += key['totalvotes']
+   else:
+       TotIncrement[key['Timestamp']] += key['totalvotes']
+newSumTotal = dict(sorted(TotIncrement.items(), key = lambda x: x[0]))
+differenceDict ={}
+# calculated the differences between the timestamps
+lastTotal = list(TotIncrement.values())[0]
+for key, val in newSumTotal.items():
+   if key not in differenceDict.keys():
+       differenceDict[key] = 0
+       differenceDict[key] += val - lastTotal
+       lastTotal = val
+   else:
+       differenceDict[key] += val - lastTotal
+       lastTotal = val
+print(max(differenceDict.items(), key=operator.itemgetter(1)))
